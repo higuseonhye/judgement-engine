@@ -74,8 +74,19 @@ curl -X POST https://your-app.vercel.app/api/analyze \
 
 ## Deploy (Vercel)
 
-```bash
-npx vercel
-```
+### Option A: Automatic deploy (recommended)
 
-Or connect the GitHub repo in [Vercel](https://vercel.com) for automatic deploys.
+1. Go to [vercel.com](https://vercel.com) → Sign in with GitHub
+2. **Add New** → **Project** → Import `higuseonhye/judgement-engine`
+3. Click **Deploy** (default settings work)
+
+→ Every push to `master` will auto-deploy.
+
+### Option B: GitHub Actions
+
+Uses `.github/workflows/deploy.yml`. Requires GitHub secrets:
+
+1. Create a Vercel project: `npx vercel` (run once locally)
+2. Add secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`
+   - Token: [vercel.com/account/tokens](https://vercel.com/account/tokens)
+   - Org/Project IDs: from `.vercel/project.json` after `vercel link`

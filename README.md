@@ -76,13 +76,13 @@ curl -X POST https://judgement-engine.vercel.app/api/analyze \
 
 ## Deploy (Vercel)
 
-### Option A: Automatic deploy (recommended)
+### Option A: Automatic deploy ✅ (configured)
 
 1. Go to [vercel.com](https://vercel.com) → Sign in with GitHub
 2. **Add New** → **Project** → Import `higuseonhye/judgement-engine`
 3. Click **Deploy** (default settings work)
 
-→ Every push to `master` will auto-deploy.
+→ Every push to `master` auto-deploys.
 
 ### Option B: GitHub Actions
 

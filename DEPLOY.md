@@ -1,5 +1,11 @@
 # Deployment Guide
 
+**Status:** Vercel auto-deploy configured. Every push to `master` deploys automatically.
+
+**Live:** [judgement-engine.vercel.app](https://judgement-engine.vercel.app)
+
+---
+
 ## Automatic Deploy (Recommended)
 
 The simplest way to get automatic deployments:

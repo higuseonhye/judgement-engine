@@ -1,6 +1,8 @@
 # Judgment Engine
 
-A rule-based module for analyzing interviews with **local experts and SMEs in developing economies**. Helps validate product-market fit for tools that amplify local capacity and enable economic participation.
+A rule-based module for analyzing interviews with **local experts and SMEs in developing economies**.
+
+**Live:** [judgement-engine.vercel.app](https://judgement-engine.vercel.app) (Vercel auto-deploy on push to `master`) Helps validate product-market fit for tools that amplify local capacity and enable economic participation.
 
 ## Vision
 
@@ -67,7 +69,7 @@ Upload a JSON file with an array of interview records. Invalid entries are filte
 ## API
 
 ```bash
-curl -X POST https://your-app.vercel.app/api/analyze \
+curl -X POST https://judgement-engine.vercel.app/api/analyze \
   -H "Content-Type: application/json" \
   -d '[{"problem_exists":true,"problem_severity":"high","willing_to_pay":true,"notes":"..."}]'
 ```

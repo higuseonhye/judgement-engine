@@ -1,21 +1,41 @@
 import { useState, useCallback, useMemo } from "react";
 import { analyze, validateRecords } from "./judgment-engine";
-import type { InterviewRecord } from "./judgment-engine";
+import type { InterviewRecord, IntervieweeRole } from "./judgment-engine";
 import { SAMPLE_DATA } from "./data/sampleData";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { useI18n } from "./i18n/useI18n";
+import { exportAsJson, exportAsCsv } from "./utils/export";
 import "./Dashboard.css";
 
 type DataSource = "sample" | "upload";
 
 export function Dashboard() {
+  const { t, locale, setLocale } = useI18n();
   const [dataSource, setDataSource] = useState<DataSource>("sample");
   const [uploadedData, setUploadedData] = useState<InterviewRecord[] | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [filterRegion, setFilterRegion] = useState<string>("");
+  const [filterRole, setFilterRole] = useState<string>("");
+  const [exportToast, setExportToast] = useState(false);
 
-  const records = useMemo(() => {
+  const baseRecords = useMemo(() => {
     if (dataSource === "sample") return SAMPLE_DATA;
     return uploadedData ?? [];
   }, [dataSource, uploadedData]);
+
+  const records = useMemo(() => {
+    return baseRecords.filter((r) => {
+      if (filterRegion && r.region !== filterRegion) return false;
+      if (filterRole && r.role !== filterRole) return false;
+      return true;
+    });
+  }, [baseRecords, filterRegion, filterRole]);
+
+  const regions = useMemo(
+    () => [...new Set(baseRecords.map((r) => r.region).filter(Boolean))] as string[],
+    [baseRecords]
+  );
+  const roles: IntervieweeRole[] = ["local_expert", "sme", "informal_worker", "other"];
 
   const showUploadPrompt = dataSource === "upload" && !uploadedData?.length && !uploadError;
 
@@ -52,6 +72,18 @@ export function Dashboard() {
     e.target.value = "";
   }, []);
 
+  const handleExportJson = useCallback(() => {
+    exportAsJson(records, result);
+    setExportToast(true);
+    setTimeout(() => setExportToast(false), 2000);
+  }, [records, result]);
+
+  const handleExportCsv = useCallback(() => {
+    exportAsCsv(records);
+    setExportToast(true);
+    setTimeout(() => setExportToast(false), 2000);
+  }, [records]);
+
   const problemPct = (result.problem_rate * 100).toFixed(1);
   const paymentPct = (result.payment_rate * 100).toFixed(1);
 
@@ -59,11 +91,28 @@ export function Dashboard() {
     <ErrorBoundary>
       <div className="dashboard">
         <header className="dashboard-header">
-          <h1 className="dashboard-title">Judgment Engine</h1>
-          <p className="dashboard-tagline">
-            Amplifying local experts &amp; SMEs in developing economies. Enabling economic
-            participation — without the work nobody wants to do.
-          </p>
+          <div className="header-row">
+            <h1 className="dashboard-title">{t.title}</h1>
+            <div className="locale-switcher">
+              <button
+                type="button"
+                className={`locale-btn ${locale === "en" ? "locale-active" : ""}`}
+                onClick={() => setLocale("en")}
+                aria-pressed={locale === "en"}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                className={`locale-btn ${locale === "ko" ? "locale-active" : ""}`}
+                onClick={() => setLocale("ko")}
+                aria-pressed={locale === "ko"}
+              >
+                KO
+              </button>
+            </div>
+          </div>
+          <p className="dashboard-tagline">{t.tagline}</p>
         </header>
 
         <section className="dashboard-actions">
@@ -74,7 +123,7 @@ export function Dashboard() {
               onClick={() => setDataSource("sample")}
               aria-pressed={dataSource === "sample"}
             >
-              Sample data
+              {t.sampleData}
             </button>
             <button
               type="button"
@@ -82,7 +131,7 @@ export function Dashboard() {
               onClick={() => setDataSource("upload")}
               aria-pressed={dataSource === "upload"}
             >
-              Upload JSON
+              {t.uploadJson}
             </button>
           </div>
           <label className="file-upload">
@@ -92,7 +141,7 @@ export function Dashboard() {
               onChange={handleFileChange}
               aria-label="Upload interview data JSON file"
             />
-            <span className="file-upload-label">Choose file</span>
+            <span className="file-upload-label">{t.chooseFile}</span>
           </label>
           {uploadError && (
             <p className="upload-error" role="alert">
@@ -103,31 +152,74 @@ export function Dashboard() {
 
         {showUploadPrompt && (
           <p className="upload-prompt">
-            Upload a JSON file with interview records. Each record should have:{" "}
-            <code>problem_exists</code>, <code>problem_severity</code>, <code>willing_to_pay</code>,{" "}
-            <code>notes</code>.
+            {t.uploadPrompt} <code>{t.uploadPromptFields}</code>
           </p>
+        )}
+
+        {records.length > 0 && (
+          <>
+            <section className="dashboard-filters">
+              <span className="filter-label">{t.filterBy}</span>
+              <select
+                value={filterRegion}
+                onChange={(e) => setFilterRegion(e.target.value)}
+                aria-label="Filter by region"
+              >
+                <option value="">{t.allRegions}</option>
+                {regions.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={filterRole}
+                onChange={(e) => setFilterRole(e.target.value)}
+                aria-label="Filter by role"
+              >
+                <option value="">{t.allRoles}</option>
+                {roles.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+              <div className="export-buttons">
+                <button type="button" className="export-btn" onClick={handleExportJson}>
+                  {t.exportJson}
+                </button>
+                <button type="button" className="export-btn" onClick={handleExportCsv}>
+                  {t.exportCsv}
+                </button>
+              </div>
+            </section>
+            {exportToast && (
+              <p className="export-toast" role="status">
+                {t.exportSuccess}
+              </p>
+            )}
+          </>
         )}
 
         <section className="dashboard-section" aria-labelledby="summary-heading">
           <h2 id="summary-heading" className="section-title">
-            Interview Summary
+            {t.summary}
           </h2>
           <div className="summary-grid">
             <div className="summary-card">
-              <span className="summary-label">Local Experts / Partners</span>
+              <span className="summary-label">{t.localExperts}</span>
               <span className="summary-value">{result.total_interviews}</span>
             </div>
             <div className="summary-card">
-              <span className="summary-label">Problem Rate (need exists)</span>
+              <span className="summary-label">{t.problemRate}</span>
               <span className="summary-value">{problemPct}%</span>
             </div>
             <div className="summary-card">
-              <span className="summary-label">Payment Rate (economic participation)</span>
+              <span className="summary-label">{t.paymentRate}</span>
               <span className="summary-value">{paymentPct}%</span>
             </div>
             <div className="summary-card">
-              <span className="summary-label">PMF Score</span>
+              <span className="summary-label">{t.pmfScore}</span>
               <span className={`summary-value pmf-${result.pmf_score}`}>{result.pmf_score}</span>
             </div>
           </div>
@@ -135,7 +227,7 @@ export function Dashboard() {
 
         <section className="dashboard-section" aria-labelledby="insights-heading">
           <h2 id="insights-heading" className="section-title">
-            Insights
+            {t.insights}
           </h2>
           <ul className="insights-list">
             {result.insights.map((insight, i) => (

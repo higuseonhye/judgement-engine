@@ -53,6 +53,29 @@ npm run lint       # ESLint
 npm run typecheck  # TypeScript check
 ```
 
+## Features
+
+- **i18n**: English (EN) / Korean (KO) language toggle
+- **Filter**: By region and role (local_expert, sme, informal_worker, other)
+- **Export**: JSON (records + analysis) or CSV (records only)
+- **API**: `POST /api/analyze` — send `{ records: [...] }` or `[...]`, get analysis JSON
+
 ## Data upload
 
 Upload a JSON file with an array of interview records. Invalid entries are filtered out; the analysis reports how many were skipped.
+
+## API
+
+```bash
+curl -X POST https://your-app.vercel.app/api/analyze \
+  -H "Content-Type: application/json" \
+  -d '[{"problem_exists":true,"problem_severity":"high","willing_to_pay":true,"notes":"..."}]'
+```
+
+## Deploy (Vercel)
+
+```bash
+npx vercel
+```
+
+Or connect the GitHub repo in [Vercel](https://vercel.com) for automatic deploys.
